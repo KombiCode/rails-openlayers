@@ -13,7 +13,9 @@ window.Rails = Rails
 import 'bootstrap'
 import 'data-confirm-modal'
 
-$(document).on("turbolinks:load", () => {
+import "@hotwired/turbo-rails"
+
+$(document).on("turbo:load", () => {
   $('[data-toggle="tooltip"]').tooltip()
   $('[data-toggle="popover"]').popover()
 })
