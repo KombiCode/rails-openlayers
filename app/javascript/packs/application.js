@@ -15,9 +15,15 @@ import 'data-confirm-modal'
 
 import "@hotwired/turbo-rails"
 
+import 'ol/ol.css';
+
+// internal imports
+import { initOpenLayers } from '../plugins/init_openlayers'
+
 $(document).on("turbo:load", () => {
-  $('[data-toggle="tooltip"]').tooltip()
-  $('[data-toggle="popover"]').popover()
+  $('[data-toggle="tooltip"]').tooltip();
+  $('[data-toggle="popover"]').popover();
+  initOpenLayers();
 })
 
 import "controllers"
