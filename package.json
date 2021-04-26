@@ -13,6 +13,7 @@
     "jquery": "^3.6.0",
     "local-time": "^2.1.0",
     "ol": "^6.5.0",
+    "ol-layerswitcher": "^3.8.3",
     "popper.js": "^1.16.1",
     "stimulus": "^2.0.0"
   },
