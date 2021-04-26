@@ -15,7 +15,8 @@
     "ol": "^6.5.0",
     "ol-layerswitcher": "^3.8.3",
     "popper.js": "^1.16.1",
-    "stimulus": "^2.0.0"
+    "stimulus": "^2.0.0",
+    "webpack-bundle-analyzer": "^4.4.1"
   },
   "version": "0.1.0",
   "devDependencies": {
