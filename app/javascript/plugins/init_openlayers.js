@@ -13,7 +13,9 @@ import WMTSTileGrid from 'ol/tilegrid/WMTS';
 import {fromLonLat, get as getProjection} from 'ol/proj';
 import {getWidth} from 'ol/extent';
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
-
+import Overlay from 'ol/Overlay';
+import {toLonLat} from 'ol/proj';
+import {toStringHDMS} from 'ol/coordinate';
 
 let gpxLayer;
 let map;
@@ -50,6 +52,33 @@ const osmSource = (tileGrid) => {
 }
 
 const buildMap = () => {
+  /**
+   * Elements that make up the popup.
+   */
+  var container = document.getElementById('popup');
+  var content = document.getElementById('popup-content');
+  var closer = document.getElementById('popup-closer');
+
+  /**
+   * Create an overlay to anchor the popup to the map.
+   */
+  var overlay = new Overlay({
+    element: container,
+    autoPan: true,
+    autoPanAnimation: {
+      duration: 250,
+    },
+  });
+
+  /**
+   * Add a click handler to hide the popup.
+   * @return {boolean} Don't follow the href.
+   */
+  closer.onclick = function () {
+    overlay.setPosition(undefined);
+    closer.blur();
+    return false;
+  };
   let resolutions = [];
   let matrixIds = [];
   let proj3857 = getProjection('EPSG:3857');
@@ -131,6 +160,7 @@ const buildMap = () => {
       zoom: 5,
       center: fromLonLat([5, 45]),
     }),
+    overlays: [overlay],
   });
 
   // add the LayerSwitcher (a.k.a. Map Legend)
@@ -140,6 +170,13 @@ const buildMap = () => {
   
   map.addControl(layerSwitcher);  
 
+  map.on('singleclick', function (evt) {
+    var coordinate = evt.coordinate;
+    var hdms = toStringHDMS(toLonLat(coordinate));
+
+    content.innerHTML = '<p>You clicked here:</p><code>' + hdms + '</code>';
+    overlay.setPosition(coordinate);
+  });
 };
 
 
