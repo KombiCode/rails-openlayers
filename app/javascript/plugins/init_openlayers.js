@@ -1,15 +1,22 @@
 import 'ol/ol.css';
 import "ol-layerswitcher/src/ol-layerswitcher.css";
+import GPX from 'ol/format/GPX';
+import VectorSource from 'ol/source/Vector';
 import LayerSwitcher from "ol-layerswitcher";
 import Map from 'ol/Map';
 import OSM from 'ol/source/OSM';
 import TileLayer from 'ol/layer/Tile';
+import VectorLayer from 'ol/layer/Vector';
 import View from 'ol/View';
 import WMTS from 'ol/source/WMTS';
 import WMTSTileGrid from 'ol/tilegrid/WMTS';
 import {fromLonLat, get as getProjection} from 'ol/proj';
 import {getWidth} from 'ol/extent';
+import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
 
+
+let gpxLayer;
+let map;
 
 const ignSource = (tileGrid) => {
   return new WMTS({
@@ -76,12 +83,49 @@ const buildMap = () => {
       title: "OSM"
   });
 
-  const map = new Map({
+
+  var style = {
+    'Point': new Style({
+      image: new CircleStyle({
+        fill: new Fill({
+          color: 'rgba(255,255,0,0.4)',
+        }),
+        radius: 5,
+        stroke: new Stroke({
+          color: '#ff0',
+          width: 1,
+        }),
+      }),
+    }),
+    'LineString': new Style({
+      stroke: new Stroke({
+        color: '#f00',
+        width: 3,
+      }),
+    }),
+    'MultiLineString': new Style({
+      stroke: new Stroke({
+        color: '#0f0',
+        width: 3,
+      }),
+    }),
+  };
+
+  gpxLayer = new VectorLayer({
+    source: new VectorSource({
+    }),
+    style: function (feature) {
+      return style[feature.getGeometry().getType()];
+    },
+  });
+
+  map = new Map({
     target: 'map',
     layers: [
       osmLayer,
       ignLayer,
-      photoLayer
+      photoLayer,
+      gpxLayer
     ],
     view: new View({
       zoom: 5,
@@ -98,8 +142,34 @@ const buildMap = () => {
 
 };
 
+
+const fileSelected = (event) => {
+  let firstFile;
+  const gpxFormat = new GPX();
+  let gpxFeatures;
+  const fileList = event.target.files;
+  firstFile = fileList[0];
+  console.log(fileList);
+  const reader = new FileReader();
+  reader.readAsText(firstFile, "UTF-8");
+  reader.onload = function (evt) {
+    console.log(evt.target.result);
+    gpxFeatures = gpxFormat.readFeatures(evt.target.result,{
+      dataProjection:'EPSG:4326',
+      featureProjection:'EPSG:3857'
+    });
+    console.log("gpxFeatures",gpxFeatures);
+    gpxLayer.getSource().addFeatures(gpxFeatures);
+  }
+};
+
 const initOpenLayers = () => {
   buildMap();
+  const fileSelector = document.getElementById('file-selector');
+  fileSelector.addEventListener('change', (event) => {
+    fileSelected(event);
+  });
+  
 };
 
 export { initOpenLayers };
