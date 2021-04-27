@@ -1,5 +1,3 @@
-import 'ol/ol.css';
-import "ol-layerswitcher/src/ol-layerswitcher.css";
 import GPX from 'ol/format/GPX';
 import VectorSource from 'ol/source/Vector';
 import LayerSwitcher from "ol-layerswitcher";
