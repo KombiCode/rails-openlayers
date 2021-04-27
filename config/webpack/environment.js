@@ -7,11 +7,4 @@ environment.plugins.append('Provide', new webpack.ProvidePlugin({
   Rails: '@rails/ujs'
 }))
 
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-environment.plugins.append(
-  'BundleAnalyzer', new BundleAnalyzerPlugin({ analyzerMode: 'static' })
-)
-
-environment.splitChunks();
-
 module.exports = environment
