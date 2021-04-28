@@ -17,15 +17,15 @@ import {toStringHDMS} from 'ol/coordinate';
 
 let gpxLayer;
 let map;
+let apiKey = "";
+
 
 const ignSource = (tileGrid) => {
   return new WMTS({
-    // url: "https://wxs.ign.fr/emlz85c4agppn27qo3ss4ypx/geoportail/wmts",
-    url: "https://wxs.ign.fr/jhyvi0fgmnuxvfv0zjzorvdn/geoportail/wmts",
-    layer: 'GEOGRAPHICALGRIDSYSTEMS.MAPS',
+    url: `https://wxs.ign.fr/${apiKey}/geoportail/wmts?`,
+    layer: 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2',
     matrixSet: 'PM',
-    format: 'image/jpeg',
-    projection: 'EPSG:3857',
+    format: 'image/png',
     tileGrid: tileGrid,
     style: 'normal',
     attributions:
@@ -37,7 +37,7 @@ const ignSource = (tileGrid) => {
 
 const photoSource = (tileGrid) => {
   return new WMTS({
-    url: "https://wxs.ign.fr/jhyvi0fgmnuxvfv0zjzorvdn/geoportail/wmts",
+    url: `https://wxs.ign.fr/${apiKey}/geoportail/wmts?`,
     layer: 'ORTHOIMAGERY.ORTHOPHOTOS',
     matrixSet: 'PM',
     tileGrid: tileGrid,
@@ -199,7 +199,13 @@ const fileSelected = (event) => {
 };
 
 const initOpenLayers = () => {
-  buildMap();
+  fetch('/init', { headers: { accept: "application/json" }})
+    .then(response => response.json())
+    .then((data) => {
+      console.log(data);
+      apiKey = data.ignApiKey;
+      buildMap();
+    });
   const fileSelector = document.getElementById('file-selector');
   fileSelector.addEventListener('change', (event) => {
     fileSelected(event);

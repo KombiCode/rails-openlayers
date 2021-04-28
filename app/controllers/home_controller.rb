@@ -7,4 +7,10 @@ class HomeController < ApplicationController
 
   def privacy
   end
+
+  def init
+    render json: {
+      ignApiKey: "#{Rails.application.credentials.ign[:api_choisirgeoportail]}",
+    }
+  end
 end
