@@ -111,9 +111,13 @@ const buildMap = () => {
     title: "OSM"
   });
 
-  const terrainLayer = new TileLayer({
+  const stamenWatercolorLayer = new TileLayer({
+    source: new Stamen({layer: 'watercolor'}),
+    title: "Stamen-watercolor"
+  });
+  const stamenTerrainLayer = new TileLayer({
     source: new Stamen({layer: 'terrain-labels'}),
-    title: "Stamen-terrain"
+    title: "Stamen-terrain-labels"
   });
 
   var style = {
@@ -157,7 +161,8 @@ const buildMap = () => {
       osmLayer,
       ignLayer,
       photoLayer,
-      terrainLayer,
+      stamenWatercolorLayer,
+      stamenTerrainLayer,
       gpxLayer
     ],
     view: new View({
