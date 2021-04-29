@@ -1,19 +1,23 @@
-import GPX from 'ol/format/GPX';
-import VectorSource from 'ol/source/Vector';
-import LayerSwitcher from "ol-layerswitcher";
-import Map from 'ol/Map';
-import OSM from 'ol/source/OSM';
-import TileLayer from 'ol/layer/Tile';
-import VectorLayer from 'ol/layer/Vector';
-import View from 'ol/View';
-import WMTS from 'ol/source/WMTS';
-import WMTSTileGrid from 'ol/tilegrid/WMTS';
-import {fromLonLat, get as getProjection} from 'ol/proj';
-import {getWidth} from 'ol/extent';
-import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
-import Overlay from 'ol/Overlay';
-import {toLonLat} from 'ol/proj';
-import {toStringHDMS} from 'ol/coordinate';
+// import GPX from 'ol/format/GPX';
+// import VectorSource from 'ol/source/Vector';
+// import LayerSwitcher from "ol-layerswitcher";
+// import Map from 'ol/Map';
+// import OSM from 'ol/source/OSM';
+// import TileLayer from 'ol/layer/Tile';
+// import VectorLayer from 'ol/layer/Vector';
+// import View from 'ol/View';
+// import WMTS from 'ol/source/WMTS';
+// import WMTSTileGrid from 'ol/tilegrid/WMTS';
+// import {fromLonLat, get as getProjection} from 'ol/proj';
+// import {getWidth} from 'ol/extent';
+// import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
+// import Overlay from 'ol/Overlay';
+// import {toLonLat} from 'ol/proj';
+// import {toStringHDMS} from 'ol/coordinate';
+
+import ol from '../libs/v6.5.0-dist/ol';
+import '../libs/v6.5.0-dist/ol.css';
+// import LayerSwitcher from "ol-layerswitcher";
 
 let gpxLayer;
 let map;
@@ -21,7 +25,7 @@ let apiKey = "";
 
 
 const ignSource = (tileGrid) => {
-  return new WMTS({
+  return new ol.source.WMTS({
     url: `https://wxs.ign.fr/${apiKey}/geoportail/wmts?`,
     layer: 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2',
     matrixSet: 'PM',
@@ -36,7 +40,7 @@ const ignSource = (tileGrid) => {
 }
 
 const photoSource = (tileGrid) => {
-  return new WMTS({
+  return new ol.source.WMTS({
     url: `https://wxs.ign.fr/${apiKey}/geoportail/wmts?`,
     layer: 'ORTHOIMAGERY.ORTHOPHOTOS',
     matrixSet: 'PM',
@@ -46,7 +50,7 @@ const photoSource = (tileGrid) => {
 }
 
 const osmSource = (tileGrid) => {
-  return new OSM();
+  return new ol.source.OSM();
 }
 
 const buildMap = () => {
@@ -60,7 +64,7 @@ const buildMap = () => {
   /**
    * Create an overlay to anchor the popup to the map.
    */
-  var overlay = new Overlay({
+  var overlay = new ol.Overlay({
     element: container,
     autoPan: true,
     autoPanAnimation: {
@@ -79,74 +83,74 @@ const buildMap = () => {
   };
   let resolutions = [];
   let matrixIds = [];
-  let proj3857 = getProjection('EPSG:3857');
-  let maxResolution = getWidth(proj3857.getExtent()) / 256;
+  let proj3857 = ol.proj.get('EPSG:3857');
+  let maxResolution = ol.extent.getWidth(proj3857.getExtent()) / 256;
 
   for (let i = 0; i < 18; i++) {
     matrixIds[i] = i.toString();
     resolutions[i] = maxResolution / Math.pow(2, i);
   }
 
-  const tileGrid = new WMTSTileGrid({
+  const tileGrid = new ol.tilegrid.WMTS({
     origin: [-20037508, 20037508],
     resolutions: resolutions,
     matrixIds: matrixIds,
   });
 
-  const ignLayer = new TileLayer({
+  const ignLayer = new ol.layer.Tile({
     source: ignSource(tileGrid),
     title: "Cartes IGN",
     opacity: 0.7
   });
 
-  const photoLayer = new TileLayer({
+  const photoLayer = new ol.layer.Tile({
     source: photoSource(tileGrid),
     title: "Photographies aériennes",
     opacity: 0.7
   });
 
-  const osmLayer = new TileLayer({
+  const osmLayer = new ol.layer.Tile({
       source: osmSource(),
       title: "OSM"
   });
 
 
   var style = {
-    'Point': new Style({
-      image: new CircleStyle({
-        fill: new Fill({
+    'Point': new ol.style.Style({
+      image: new ol.style.Circle({
+        fill: new ol.style.Fill({
           color: 'rgba(255,255,0,0.4)',
         }),
         radius: 5,
-        stroke: new Stroke({
+        stroke: new ol.style.Stroke({
           color: '#ff0',
           width: 1,
         }),
       }),
     }),
-    'LineString': new Style({
-      stroke: new Stroke({
+    'LineString': new ol.style.Style({
+      stroke: new ol.style.Stroke({
         color: '#f00',
         width: 3,
       }),
     }),
-    'MultiLineString': new Style({
-      stroke: new Stroke({
+    'MultiLineString': new ol.style.Style({
+      stroke: new ol.style.Stroke({
         color: '#0f0',
         width: 3,
       }),
     }),
   };
 
-  gpxLayer = new VectorLayer({
-    source: new VectorSource({
+  gpxLayer = new ol.layer.Vector({
+    source: new ol.source.Vector({
     }),
     style: function (feature) {
       return style[feature.getGeometry().getType()];
     },
   });
 
-  map = new Map({
+  map = new ol.Map({
     target: 'map',
     layers: [
       osmLayer,
@@ -154,23 +158,23 @@ const buildMap = () => {
       photoLayer,
       gpxLayer
     ],
-    view: new View({
+    view: new ol.View({
       zoom: 5,
-      center: fromLonLat([5, 45]),
+      center: ol.proj.fromLonLat([5, 45]),
     }),
     overlays: [overlay],
   });
 
   // add the LayerSwitcher (a.k.a. Map Legend)
-  const layerSwitcher = new LayerSwitcher();
-  layerSwitcher.ascending = false;
-  layerSwitcher.useLegendGraphics = true;
+  // const layerSwitcher = new LayerSwitcher();
+  // layerSwitcher.ascending = false;
+  // layerSwitcher.useLegendGraphics = true;
   
-  map.addControl(layerSwitcher);  
+  // map.addControl(layerSwitcher);  
 
   map.on('singleclick', function (evt) {
     var coordinate = evt.coordinate;
-    var hdms = toStringHDMS(toLonLat(coordinate));
+    var hdms = ol.coordinate.toStringHDMS(ol.proj.toLonLat(coordinate));
 
     content.innerHTML = '<p>You clicked here:</p><code>' + hdms + '</code>';
     overlay.setPosition(coordinate);
@@ -180,7 +184,7 @@ const buildMap = () => {
 
 const fileSelected = (event) => {
   let firstFile;
-  const gpxFormat = new GPX();
+  const gpxFormat = new ol.GPX();
   let gpxFeatures;
   const fileList = event.target.files;
   firstFile = fileList[0];
@@ -198,6 +202,27 @@ const fileSelected = (event) => {
   }
 };
 
+
+
+// const buildMap2 = () => {
+//   const map = new ol.Map({
+//     target: 'map',
+//     layers: [
+//       new ol.layer.Tile({
+//         source: new ol.source.Stamen({layer: 'watercolor'})
+//       }),
+//       new ol.layer.Tile({
+//         source: new ol.source.Stamen({layer: 'terrain-labels'})
+//       }),
+//     ],
+//     view: new ol.View({
+//       center: ol.proj.fromLonLat([5.9358, 45.2195]),
+//       // center: ol.proj.fromLonLat([-110.0, 40.0]),
+//       zoom: 10
+//     })
+//   });
+// }
+
 const initOpenLayers = () => {
   fetch('/init', { headers: { accept: "application/json" }})
     .then(response => response.json())
@@ -205,6 +230,7 @@ const initOpenLayers = () => {
       console.log(data);
       apiKey = data.ignApiKey;
       buildMap();
+      // buildMap2();
     });
   const fileSelector = document.getElementById('file-selector');
   fileSelector.addEventListener('change', (event) => {
