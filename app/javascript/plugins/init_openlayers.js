@@ -3,6 +3,7 @@ import VectorSource from 'ol/source/Vector';
 import LayerSwitcher from "ol-layerswitcher";
 import Map from 'ol/Map';
 import OSM from 'ol/source/OSM';
+import Stamen from 'ol/source/Stamen';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 import View from 'ol/View';
@@ -106,10 +107,14 @@ const buildMap = () => {
   });
 
   const osmLayer = new TileLayer({
-      source: osmSource(),
-      title: "OSM"
+    source: osmSource(),
+    title: "OSM"
   });
 
+  const terrainLayer = new TileLayer({
+    source: new Stamen({layer: 'terrain-labels'}),
+    title: "Stamen-terrain"
+  });
 
   var style = {
     'Point': new Style({
@@ -152,6 +157,7 @@ const buildMap = () => {
       osmLayer,
       ignLayer,
       photoLayer,
+      terrainLayer,
       gpxLayer
     ],
     view: new View({
