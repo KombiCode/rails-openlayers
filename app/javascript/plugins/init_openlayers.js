@@ -17,6 +17,8 @@ import Overlay from 'ol/Overlay';
 import {toLonLat} from 'ol/proj';
 import {toStringHDMS} from 'ol/coordinate';
 
+import { getMinMax, styleFn } from './gpx_flow_style'
+
 let gpxLayer;
 let map;
 let apiKey = "";
@@ -148,13 +150,20 @@ const buildMap = () => {
     }),
   };
 
+  const gpxSource = new VectorSource();
+	gpxSource.once('change',function(e) {
+    if (gpxSource.getState() === 'ready'){
+      getMinMax (gpxSource.getFeatures()[0]);
+		}
+  });
+
   gpxLayer = new VectorLayer({
-    source: new VectorSource({
-    }),
+    source: gpxSource,
     title: "GPX tracks",
-    style: function (feature) {
-      return style[feature.getGeometry().getType()];
-    },
+    style: styleFn
+    // style: function (feature) {
+    //   return style[feature.getGeometry().getType()];
+    // },
   });
 
   map = new Map({
