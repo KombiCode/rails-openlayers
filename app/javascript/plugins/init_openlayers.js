@@ -1,6 +1,7 @@
 import GPX from 'ol/format/GPX';
 import VectorSource from 'ol/source/Vector';
-import LayerSwitcher from "ol-layerswitcher";
+// import LayerSwitcher from "ol-layerswitcher";
+import LayerSwitcher from "ol-ext/control/LayerSwitcher";
 import Map from 'ol/Map';
 import OSM from 'ol/source/OSM';
 import Stamen from 'ol/source/Stamen';
@@ -150,6 +151,7 @@ const buildMap = () => {
   gpxLayer = new VectorLayer({
     source: new VectorSource({
     }),
+    title: "GPX tracks",
     style: function (feature) {
       return style[feature.getGeometry().getType()];
     },
@@ -172,11 +174,7 @@ const buildMap = () => {
     overlays: [overlay],
   });
 
-  // add the LayerSwitcher (a.k.a. Map Legend)
   const layerSwitcher = new LayerSwitcher();
-  layerSwitcher.ascending = false;
-  layerSwitcher.useLegendGraphics = true;
-  
   map.addControl(layerSwitcher);  
 
   map.on('singleclick', function (evt) {
