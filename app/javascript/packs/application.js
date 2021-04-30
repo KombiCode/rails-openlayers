@@ -16,7 +16,6 @@ import 'data-confirm-modal'
 import "@hotwired/turbo-rails"
 
 import 'ol/ol.css';
-import "ol-layerswitcher/src/ol-layerswitcher.css";
 
 // internal imports
 import { initOpenLayers } from '../plugins/init_openlayers'

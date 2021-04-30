@@ -8,6 +8,7 @@
 @import "jumpstart/sticky-footer";
 @import "jumpstart/announcements";
 @import "plugins/openlayers";
+@import "plugins/layerswitcher";
 
 // Fixes bootstrap nav-brand container overlap
 @include media-breakpoint-down(xs) {
