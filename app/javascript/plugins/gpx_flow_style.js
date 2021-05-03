@@ -30,7 +30,7 @@ import * as coordinate from "ol/coordinate";
         var dh = 255*(h-min)/(max-min);
         return getColor(dh);
       },
-      width: 5,
+      width: 3,
       geometry: function (f) {
         if (f.getGeometry().getType() === 'MultiLineString') {
           return f.getGeometry().getLineString(0);
