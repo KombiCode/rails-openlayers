@@ -22,21 +22,37 @@ import { getMinMax, styleFn } from './gpx_flow_style'
 let gpxLayer;
 let map;
 let apiKey = "";
+let apiLHKey = ""
 
 
 const ignSource = (tileGrid) => {
-  return new WMTS({
-    url: `https://wxs.ign.fr/${apiKey}/geoportail/wmts?`,
-    layer: 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2',
-    matrixSet: 'PM',
-    format: 'image/png',
-    tileGrid: tileGrid,
-    style: 'normal',
-    attributions:
-      '<a href="http://www.ign.fr" target="_blank">' +
-      '<img src="https://wxs.ign.fr/static/logos/IGN/IGN.gif" title="Institut national de l\'' +
-      'information géographique et forestière" alt="IGN"></a>',
-  });
+  if (location.hostname === "localhost") {
+    return new WMTS({
+      url: `https://wxs.ign.fr/${apiLHKey}/geoportail/wmts?`,
+      layer: 'GEOGRAPHICALGRIDSYSTEMS.MAPS',
+      matrixSet: 'PM',
+      format: 'image/jpeg',
+      tileGrid: tileGrid,
+      style: 'normal',
+      attributions:
+        '<a href="http://www.ign.fr" target="_blank">' +
+        '<img src="https://wxs.ign.fr/static/logos/IGN/IGN.gif" title="Institut national de l\'' +
+        'information géographique et forestière" alt="IGN"></a>',
+    });
+  } else {
+    return new WMTS({
+      url: `https://wxs.ign.fr/${apiKey}/geoportail/wmts?`,
+      layer: 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2',
+      matrixSet: 'PM',
+      format: 'image/png',
+      tileGrid: tileGrid,
+      style: 'normal',
+      attributions:
+        '<a href="http://www.ign.fr" target="_blank">' +
+        '<img src="https://wxs.ign.fr/static/logos/IGN/IGN.gif" title="Institut national de l\'' +
+        'information géographique et forestière" alt="IGN"></a>',
+    });
+  }
 }
 
 const photoSource = (tileGrid) => {
@@ -222,6 +238,7 @@ const initOpenLayers = () => {
     .then((data) => {
       console.log(data);
       apiKey = data.ignApiKey;
+      apiLHKey = data.ignLHApiKey;
       buildMap();
     });
   const fileSelector = document.getElementById('file-selector');

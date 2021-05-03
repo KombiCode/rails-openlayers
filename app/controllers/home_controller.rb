@@ -11,6 +11,7 @@ class HomeController < ApplicationController
   def init
     render json: {
       ignApiKey: "#{Rails.application.credentials.ign[:api_choisirgeoportail]}",
+      ignLHApiKey: "#{Rails.application.credentials.ign[:api_lh]}",
     }
   end
 end
