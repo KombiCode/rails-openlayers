@@ -22,7 +22,8 @@ import { getMinMax, styleFn } from './gpx_flow_style'
 let gpxLayer;
 let map;
 let apiKey = "";
-let apiLHKey = ""
+let apiLHKey = "";
+let gpxStyle;
 
 
 const ignSource = (tileGrid) => {
@@ -160,7 +161,7 @@ const buildMap = () => {
     }),
     'MultiLineString': new Style({
       stroke: new Stroke({
-        color: '#0f0',
+        color: '#b8b5ff',
         width: 3,
       }),
     }),
@@ -176,10 +177,10 @@ const buildMap = () => {
   gpxLayer = new VectorLayer({
     source: gpxSource,
     title: "GPX tracks",
-    style: styleFn
-    // style: function (feature) {
-    //   return style[feature.getGeometry().getType()];
-    // },
+    // style: styleFn,
+    style: function (feature) {
+      return style[feature.getGeometry().getType()];
+    },
   });
 
   map = new Map({
@@ -218,16 +219,14 @@ const fileSelected = (event) => {
   let gpxFeatures;
   const fileList = event.target.files;
   firstFile = fileList[0];
-  console.log(fileList);
   const reader = new FileReader();
   reader.readAsText(firstFile, "UTF-8");
   reader.onload = function (evt) {
-    console.log(evt.target.result);
     gpxFeatures = gpxFormat.readFeatures(evt.target.result,{
       dataProjection:'EPSG:4326',
       featureProjection:'EPSG:3857'
     });
-    console.log("gpxFeatures",gpxFeatures);
+    // gpxFeatures = gpxFormat.readFeatures(evt.target.result);
     gpxLayer.getSource().addFeatures(gpxFeatures);
   }
 };
@@ -236,7 +235,6 @@ const initOpenLayers = () => {
   fetch('/init', { headers: { accept: "application/json" }})
     .then(response => response.json())
     .then((data) => {
-      console.log(data);
       apiKey = data.ignApiKey;
       apiLHKey = data.ignLHApiKey;
       buildMap();
