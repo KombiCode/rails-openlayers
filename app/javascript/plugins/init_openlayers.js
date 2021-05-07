@@ -1,6 +1,5 @@
 import GPX from 'ol/format/GPX';
 import VectorSource from 'ol/source/Vector';
-// import LayerSwitcher from "ol-layerswitcher";
 import LayerSwitcher from "ol-ext/control/LayerSwitcher";
 import Map from 'ol/Map';
 import OSM from 'ol/source/OSM';
@@ -16,6 +15,7 @@ import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
 import Overlay from 'ol/Overlay';
 import {toLonLat} from 'ol/proj';
 import {toStringHDMS} from 'ol/coordinate';
+import SearchGeoportail from "ol-ext/control/SearchGeoportail";
 
 import { getMinMax, styleFn } from './gpx_flow_style'
 
@@ -189,8 +189,8 @@ const buildMap = () => {
       osmLayer,
       ignLayer,
       photoLayer,
-      stamenWatercolorLayer,
-      stamenTerrainLayer,
+      // stamenWatercolorLayer,
+      // stamenTerrainLayer,
       gpxLayer
     ],
     view: new View({
@@ -202,6 +202,24 @@ const buildMap = () => {
 
   const layerSwitcher = new LayerSwitcher();
   map.addControl(layerSwitcher);  
+
+  // Set the control grid reference
+  const search = new SearchGeoportail({
+    apiKey: apiKey,
+    // type: 'Commune',
+    reverse: true
+    });
+  map.addControl (search);
+
+  // Select feature when click on the reference index
+  search.on('select', function(e) {
+    // console.log(e);
+    map.getView().animate({
+      center:e.coordinate,
+      zoom: Math.max (map.getView().getZoom(),16)
+    });
+  });
+
 
   map.on('singleclick', function (evt) {
     var coordinate = evt.coordinate;

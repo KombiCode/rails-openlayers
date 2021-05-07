@@ -9,6 +9,7 @@
 @import "jumpstart/announcements";
 @import "plugins/openlayers";
 @import "plugins/layerswitcher";
+@import "plugins/olsearch";
 
 // Fixes bootstrap nav-brand container overlap
 @include media-breakpoint-down(xs) {
