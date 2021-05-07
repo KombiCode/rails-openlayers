@@ -16,6 +16,7 @@ import Overlay from 'ol/Overlay';
 import {toLonLat} from 'ol/proj';
 import {toStringHDMS} from 'ol/coordinate';
 import SearchGeoportail from "ol-ext/control/SearchGeoportail";
+import ScaleLine from "ol/control/ScaleLine";
 
 import { getMinMax, styleFn } from './gpx_flow_style'
 
@@ -220,6 +221,7 @@ const buildMap = () => {
     });
   });
 
+  map.addControl(new ScaleLine());
 
   map.on('singleclick', function (evt) {
     var coordinate = evt.coordinate;
