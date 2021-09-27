@@ -15,11 +15,10 @@ import 'data-confirm-modal'
 
 import "@hotwired/turbo-rails"
 
-import 'ol/ol.css';
-// import 'ol-ext/dist/ol-ext.css';
-
 // internal imports
 import { initOpenLayers } from '../plugins/init_openlayers'
+
+import "../stylesheets/application.scss"
 
 $(document).on("turbo:load", () => {
   $('[data-toggle="tooltip"]').tooltip();
