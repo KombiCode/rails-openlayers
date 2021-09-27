@@ -5,6 +5,7 @@ import Map from 'ol/Map';
 import OSM from 'ol/source/OSM';
 import Stamen from 'ol/source/Stamen';
 import TileLayer from 'ol/layer/Tile';
+import TileWMS from 'ol/source/TileWMS';
 import VectorLayer from 'ol/layer/Vector';
 import View from 'ol/View';
 import WMTS from 'ol/source/WMTS';
@@ -13,12 +14,14 @@ import {fromLonLat, get as getProjection} from 'ol/proj';
 import {getWidth} from 'ol/extent';
 import {Circle as CircleStyle, Fill, Stroke, Style} from 'ol/style';
 import Overlay from 'ol/Overlay';
+import Tooltip from 'ol-ext/overlay/Tooltip';
 import {toLonLat} from 'ol/proj';
 import {toStringHDMS} from 'ol/coordinate';
 import SearchGeoportail from "ol-ext/control/SearchGeoportail";
 import ScaleLine from "ol/control/ScaleLine";
-
+import {elevationMap, getElevationFromPixel} from 'ol-ext/util/imagesLoader';
 import { getMinMax, styleFn } from './gpx_flow_style'
+import CSS from 'ol-ext/filter/CSS';
 
 let gpxLayer;
 let map;
@@ -73,16 +76,16 @@ const osmSource = (tileGrid) => {
 
 const buildMap = () => {
   /**
-   * Elements that make up the popup.
+   * Elements that make up the popup for coordinates.
    */
-  var container = document.getElementById('popup');
-  var content = document.getElementById('popup-content');
-  var closer = document.getElementById('popup-closer');
+  var container = document.getElementById('popup-coord');
+  var content = document.getElementById('popup-coord-content');
+  var closer = document.getElementById('popup-coord-closer');
 
   /**
    * Create an overlay to anchor the popup to the map.
    */
-  var overlay = new Overlay({
+  var overlayAnchor = new Overlay({
     element: container,
     autoPan: true,
     autoPanAnimation: {
@@ -95,7 +98,7 @@ const buildMap = () => {
    * @return {boolean} Don't follow the href.
    */
   closer.onclick = function () {
-    overlay.setPosition(undefined);
+    overlayAnchor.setPosition(undefined);
     closer.blur();
     return false;
   };
@@ -189,7 +192,7 @@ const buildMap = () => {
     layers: [
       osmLayer,
       ignLayer,
-      photoLayer,
+      // photoLayer,
       // stamenWatercolorLayer,
       // stamenTerrainLayer,
       gpxLayer
@@ -197,8 +200,91 @@ const buildMap = () => {
     view: new View({
       zoom: 5,
       center: fromLonLat([5, 45]),
-    }),
-    overlays: [overlay],
+      }),
+    overlays: [overlayAnchor],
+  });
+
+
+  // A set of elevation layers
+  const elevationLayers = [
+    {
+      title: 'MNT SRTM3',
+      url: 'https://wxs.ign.fr/altimetrie/geoportail/r/wms',
+      layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.SRTM3',
+      //extent: [ -20037554.725947514, -8625918.87376409, 20037554.725947514, 8625918.87376409 ]
+    },{
+      title: 'MNS',
+      url: 'https://wxs.ign.fr/altimetrie/geoportail/r/wms',
+      layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES.MNS',
+      extent: [ -578959.605490584, 5203133.393641367, 921974.2487313666, 6643289.75487211 ]
+    }, {
+      title: 'MNT-RGE-Alti',
+      url: 'https://wxs.ign.fr/altimetrie/geoportail/r/wms',
+      layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES',
+      extent: [ -7007874.496280316, -1460624.494037931, 5043253.3127169, 6639937.650114076 ]
+    }, {
+      title: 'MNT BDAlti V1',
+      url: 'https://wxs.ign.fr/altimetrie/geoportail/r/wms',
+      layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE',
+      extent: [ -7007874.496280316, -1460624.494037931, 5043253.3127169, 6639937.650114076 ]
+    }
+  ];
+
+  // Add tile layer
+  const layer = elevationLayers[1]
+  const elevTileLayer = new TileLayer ({
+    title: layer.title,
+    displayInLayerSwitcher: false,
+    opacity: 0,
+    extent: layer.extent,
+    minResolution: 0,
+    maxResolution: 197231.79878968254,
+    source: new TileWMS({
+      url: layer.url,
+      projection: 'EPSG:3857',
+      attributions: [ 'Geoservices-IGN' ],
+      crossOrigin: 'anonymous',
+      params: {
+        LAYERS: layer.layer,
+        FORMAT: 'image/x-bil;bits=32',
+        VERSION: '1.3.0'
+      }
+    })
+  });
+  map.addLayer(elevTileLayer);
+
+  // Tile load function to convert elevation
+  const alti = elevationMap();
+  elevTileLayer.getSource().setTileLoadFunction(alti);
+
+  // Hide the layer (but keep it on the map)
+  const hide = new CSS({ display: false });
+  elevTileLayer.addFilter(hide);
+
+  // Prevent layer smoothing
+  elevTileLayer.once('prerender', function(evt) {
+    evt.context.imageSmoothingEnabled = false;
+    evt.context.webkitImageSmoothingEnabled = false;
+    evt.context.mozImageSmoothingEnabled = false;
+    evt.context.msImageSmoothingEnabled = false;
+  });
+
+  // Add a popup to display elevation
+  const popup = new Tooltip();
+  map.addOverlay(popup)
+  map.on('pointermove', function(e) {
+    map.forEachLayerAtPixel(
+      e.pixel, 
+      function(layer, p) {
+        if (layer===elevTileLayer) {
+          var h = getElevationFromPixel(p);
+          popup.setInfo(h>-5000 ? h.toFixed(2)+' m' : '');
+        }
+      }),{
+        layerFilter: function(l) {
+          return l===elevTileLayer;
+        }
+      }
   });
 
   const layerSwitcher = new LayerSwitcher();
@@ -228,7 +314,7 @@ const buildMap = () => {
     var hdms = toStringHDMS(toLonLat(coordinate));
 
     content.innerHTML = '<p>You clicked here:</p><code>' + hdms + '</code>';
-    overlay.setPosition(coordinate);
+    overlayAnchor.setPosition(coordinate);
   });
 };
 
