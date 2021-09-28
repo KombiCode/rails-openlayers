@@ -74,6 +74,8 @@ const osmSource = (tileGrid) => {
   return new OSM();
 }
 
+const tooltip = new Tooltip();
+
 const buildMap = () => {
   /**
    * Elements that make up the popup for coordinates.
@@ -269,22 +271,25 @@ const buildMap = () => {
     evt.context.msImageSmoothingEnabled = false;
   });
 
-  // Add a popup to display elevation
-  const popup = new Tooltip();
-  map.addOverlay(popup)
+  // Add the tooltip to display elevation
+  map.addOverlay(tooltip);
   map.on('pointermove', function(e) {
-    map.forEachLayerAtPixel(
-      e.pixel, 
-      function(layer, p) {
-        if (layer===elevTileLayer) {
-          var h = getElevationFromPixel(p);
-          popup.setInfo(h>-5000 ? h.toFixed(2)+' m' : '');
+    if (tooltip.getElement().classList.contains("visible")) {
+      map.forEachLayerAtPixel(
+        e.pixel, 
+        function(layer, p) {
+          if (layer===elevTileLayer) {
+            var h = getElevationFromPixel(p);
+            tooltip.setInfo(h>-5000 ? h.toFixed(2)+' m' : '');
+          }
         }
-      }),{
+      ),
+      {
         layerFilter: function(l) {
           return l===elevTileLayer;
         }
       }
+    }
   });
 
   const layerSwitcher = new LayerSwitcher();
@@ -300,7 +305,6 @@ const buildMap = () => {
 
   // Select feature when click on the reference index
   search.on('select', function(e) {
-    // console.log(e);
     map.getView().animate({
       center:e.coordinate,
       zoom: Math.max (map.getView().getZoom(),16)
@@ -318,6 +322,12 @@ const buildMap = () => {
   });
 };
 
+const toggleElevation = (event) => {
+  tooltip.getElement().classList.toggle("visible");
+  if (!tooltip.getElement().classList.contains("visible")) {
+    tooltip.setInfo("");
+  }
+};
 
 const fileSelected = (event) => {
   let firstFile;
@@ -349,7 +359,10 @@ const initOpenLayers = () => {
   fileSelector.addEventListener('change', (event) => {
     fileSelected(event);
   });
-  
+  const elevationCheckbox = document.getElementById('elev-checkbox');
+  elevationCheckbox.addEventListener('change', (event) => {
+    toggleElevation(event);
+  });
 };
 
 export { initOpenLayers };
